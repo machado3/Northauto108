@@ -8,16 +8,24 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.database import get_db
 from app.models.models import Admin
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+)
 
 bearer_scheme = HTTPBearer()
 
 
 def hash_password(password: str) -> str:
-    return hashpw(password.encode(), gensalt()).decode()
+    # O bcrypt aceita no máximo 72 bytes
+    pwd_bytes = password.encode('utf-8')[:72]
+    return pwd_context.hash(pwd_bytes.decode('utf-8', errors='ignore'))
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return checkpw(plain.encode(), hashed.encode())
+    return pwd_context.verify(plain, hashed)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

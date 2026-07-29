@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from decimal import Decimal
 
 
 # ── Photos ────────────────────────────────────────────────────────────────────
@@ -8,7 +9,7 @@ from datetime import datetime
 class PhotoOut(BaseModel):
     id: int
     url: str
-    filename: str
+    public_id: str
     is_primary: bool
     car_id: int
     created_at: datetime
@@ -23,14 +24,14 @@ class CarBase(BaseModel):
     brand: str = Field(..., min_length=1, max_length=100)
     model: str = Field(..., min_length=1, max_length=100)
     year: int = Field(..., ge=1900, le=2100)
-    price: float = Field(..., ge=0)
+    price: Decimal = Field(..., ge=0)
     mileage: int = Field(default=0, ge=0)
     fuel: str = Field(..., min_length=1, max_length=50)
     transmission: str = Field(..., min_length=1, max_length=50)
     color: str = Field(default="", max_length=50)
     horsepower: Optional[int] = Field(default=None, ge=0)
     description: str = Field(default="")
-    features: list[str] = Field(default=[])
+    features: list[str] = Field(default_factory=list)
     active: bool = Field(default=True)
 
 
@@ -43,7 +44,7 @@ class CarUpdate(BaseModel):
     brand: Optional[str] = Field(default=None, min_length=1, max_length=100)
     model: Optional[str] = Field(default=None, min_length=1, max_length=100)
     year: Optional[int] = Field(default=None, ge=1900, le=2100)
-    price: Optional[float] = Field(default=None, ge=0)
+    price: Optional[Decimal] = Field(default=None, ge=0)
     mileage: Optional[int] = Field(default=None, ge=0)
     fuel: Optional[str] = Field(default=None, min_length=1, max_length=50)
     transmission: Optional[str] = Field(default=None, min_length=1, max_length=50)
@@ -56,7 +57,7 @@ class CarUpdate(BaseModel):
 
 class CarOut(CarBase):
     id: int
-    photos: list[PhotoOut] = []
+    photos: list[PhotoOut] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 
@@ -69,7 +70,7 @@ class CarListOut(BaseModel):
     brand: str
     model: str
     year: int
-    price: float
+    price: Decimal
     mileage: int
     fuel: str
     transmission: str

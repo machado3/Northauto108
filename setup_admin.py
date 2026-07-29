@@ -1,65 +1,44 @@
-#!/usr/bin/env python3
-"""
-Script para criar o primeiro utilizador admin.
-Corre com: python setup_admin.py
-"""
-import sys
-import getpass
-
-# Adicionar o diretório ao path
-sys.path.insert(0, ".")
-
 from app.core.database import engine, SessionLocal, Base
-from app.models.models import Admin  # noqa
+from app.models.models import Admin, Car, Photo  # Importa todos os teus modelos para o SQLAlchemy os registar
 from app.core.auth import hash_password
 
-Base.metadata.create_all(bind=engine)
+def init_database():
+    print("A criar tabelas na base de dados do Supabase...")
+    Base.metadata.create_all(bind=engine)
+    print("Tabelas verificadas/criadas com sucesso!")
 
-def main():
-    print("\n🚗 CarSite Backend — Setup do Admin\n")
+def create_admin():
+    # Inicializa as tabelas primeiro
+    init_database()
 
     db = SessionLocal()
+    try:
+        username = input("Insere o username do admin: ").strip()
+        password = input("Insere a password do admin: ").strip()
 
-    existing = db.query(Admin).all()
-    if existing:
-        print(f"Já existe(m) {len(existing)} admin(s): {[a.username for a in existing]}")
-        resp = input("Criar outro? (s/N): ").strip().lower()
-        if resp != "s":
-            db.close()
+        if not username or not password:
+            print("Erro: O username e a password não podem estar vazios.")
             return
 
-    username = input("Username: ").strip()
-    if not username:
-        print("Username não pode estar vazio.")
+        # Verificar se o admin já existe
+        existing = db.query(Admin).filter(Admin.username == username).first()
+        if existing:
+            print(f"O admin '{username}' já existe na base de dados.")
+            return
+
+        # Criar o novo admin
+        hashed_pwd = hash_password(password)
+        new_admin = Admin(username=username, password=hashed_pwd)
+        
+        db.add(new_admin)
+        db.commit()
+        print(f"Administrador '{username}' criado com sucesso no Supabase!")
+
+    except Exception as e:
+        db.rollback()
+        print(f"Ocorreu um erro ao criar o admin: {e}")
+    finally:
         db.close()
-        return
-
-    if db.query(Admin).filter(Admin.username == username).first():
-        print(f"Já existe um admin com o username '{username}'.")
-        db.close()
-        return
-
-    password = getpass.getpass("Password: ")
-    if len(password) < 6:
-        print("A password deve ter pelo menos 6 caracteres.")
-        db.close()
-        return
-
-    confirm = getpass.getpass("Confirmar password: ")
-    if password != confirm:
-        print("As passwords não coincidem.")
-        db.close()
-        return
-
-    admin = Admin(username=username, password=hash_password(password))
-    db.add(admin)
-    db.commit()
-    db.close()
-
-    print(f"\n✅ Admin '{username}' criado com sucesso!")
-    print("Arranca o servidor com: uvicorn app.main:app --reload")
-    print("Docs: http://localhost:8000/docs\n")
-
 
 if __name__ == "__main__":
-    main()
+    create_admin()

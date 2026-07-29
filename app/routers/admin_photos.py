@@ -1,5 +1,6 @@
-import os
 import uuid
+import cloudinary.uploader
+from app.core import cloudinary
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -56,24 +57,21 @@ async def upload_photo(
         )
 
     # Gerar nome único
-    ext = (file.filename or "image.jpg").rsplit(".", 1)[-1].lower()
-    filename = f"car-{car_id}-{uuid.uuid4().hex[:8]}.{ext}"
-    upload_path = os.path.join(settings.UPLOAD_DIR, "cars", filename)
+    result = cloudinary.uploader.upload(
+    content,
+    folder=f"cars/{car_id}",
+    public_id=uuid.uuid4().hex,
+    overwrite=False,
+    resource_type="image",
+)
 
-    # Garantir que a pasta existe
-    os.makedirs(os.path.dirname(upload_path), exist_ok=True)
-
-    # Guardar ficheiro
-    with open(upload_path, "wb") as f:
-        f.write(content)
-
-    # URL pública
-    url = f"{settings.BASE_URL}/uploads/cars/{filename}"
+    url = result["secure_url"]
+    public_id = result["public_id"]
 
     # Primeira foto é sempre a principal
     is_primary = len(car.photos) == 0
 
-    photo = Photo(url=url, filename=filename, is_primary=is_primary, car_id=car_id)
+    photo = Photo(url=url, public_id=public_id, is_primary=is_primary, car_id=car_id)
     db.add(photo)
     db.commit()
     db.refresh(photo)
@@ -94,9 +92,7 @@ def delete_photo(
     was_primary = photo.is_primary
 
     # Apagar ficheiro físico
-    file_path = os.path.join(settings.UPLOAD_DIR, "cars", photo.filename)
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    cloudinary.uploader.destroy(photo.public_id)
 
     db.delete(photo)
     db.commit()

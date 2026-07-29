@@ -1,4 +1,3 @@
-import json
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -44,7 +43,7 @@ def create_car(
         color=data.color,
         horsepower=data.horsepower,
         description=data.description,
-        features=json.dumps(data.features, ensure_ascii=False),
+        features=data.features,
         active=data.active,
     )
     db.add(car)
@@ -66,7 +65,7 @@ def get_car(
     if not car:
         raise HTTPException(status_code=404, detail="Anúncio não encontrado")
     out = CarOut.model_validate(car)
-    out.features = json.loads(car.features) if car.features else []
+    out.features = car.features or []
     return out
 
 
@@ -82,8 +81,6 @@ def update_car(
         raise HTTPException(status_code=404, detail="Anúncio não encontrado")
 
     update_data = data.model_dump(exclude_unset=True)
-    if "features" in update_data:
-        update_data["features"] = json.dumps(update_data["features"], ensure_ascii=False)
 
     for field, value in update_data.items():
         setattr(car, field, value)
@@ -92,7 +89,7 @@ def update_car(
     db.refresh(car)
 
     out = CarOut.model_validate(car)
-    out.features = json.loads(car.features) if car.features else []
+    out.features = car.features or []
     return out
 
 
@@ -107,11 +104,10 @@ def delete_car(
         raise HTTPException(status_code=404, detail="Anúncio não encontrado")
 
     # Apagar ficheiros físicos das fotos
-    import os
+    import cloudinary.uploader
+
     for photo in car.photos:
-        path = f"uploads/cars/{photo.filename}"
-        if os.path.exists(path):
-            os.remove(path)
+        cloudinary.uploader.destroy(photo.public_id)
 
     db.delete(car)
     db.commit()

@@ -1,4 +1,3 @@
-import json
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -23,7 +22,7 @@ def car_to_list_out(car: Car) -> CarListOut:
         transmission=car.transmission,
         color=car.color,
         horsepower=car.horsepower,
-        features=json.loads(car.features) if car.features else [],
+        features=car.features or [], 
         active=car.active,
         primary_photo=PhotoOut.model_validate(primary) if primary else None,
         photo_count=len(car.photos),
@@ -45,7 +44,7 @@ def list_cars(
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
-    q = db.query(Car).filter(Car.active == True)
+    q = db.query(Car).filter(Car.active.is_(True))
 
     if brand:
         q = q.filter(Car.brand.ilike(f"%{brand}%"))
@@ -70,11 +69,11 @@ def list_cars(
 
 @router.get("/{car_id}", response_model=CarOut, summary="Detalhe de um carro")
 def get_car(car_id: int, db: Session = Depends(get_db)):
-    car = db.query(Car).filter(Car.id == car_id, Car.active == True).first()
+    car = db.query(Car).filter(Car.id == car_id, Car.active.is_(True)).first()
     if not car:
         raise HTTPException(status_code=404, detail="Carro não encontrado")
 
     # Deserializar features
     car_out = CarOut.model_validate(car)
-    car_out.features = json.loads(car.features) if car.features else []
+    car_out.features = car.features or []
     return car_out
