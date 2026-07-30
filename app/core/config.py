@@ -1,5 +1,6 @@
+from typing import Union, List
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
-import secrets
 
 class Settings(BaseSettings):
     DATABASE_URL: str
@@ -19,10 +20,19 @@ class Settings(BaseSettings):
         "image/webp",
     ]
 
-    CORS_ORIGINS: list[str] = [
+    CORS_ORIGINS: Union[str, List[str]] = [
         "http://localhost:3000",
         "http://localhost:3001",
     ]
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
+        if isinstance(v, str) and not v.startswith("["):
+            return [i.strip() for i in v.split(",")]
+        elif isinstance(v, (list, str)):
+            return v
+        raise ValueError(v)
 
     DEBUG: bool = False
     APP_TITLE: str = "CarSite API"
