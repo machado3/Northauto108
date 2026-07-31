@@ -1,6 +1,5 @@
 import uuid
 import cloudinary.uploader
-from app.core import cloudinary
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -56,14 +55,14 @@ async def upload_photo(
             detail=f"Ficheiro demasiado grande. Máximo {settings.MAX_FILE_SIZE_MB}MB.",
         )
 
-    # Gerar nome único
+    # Gerar nome único e fazer upload
     result = cloudinary.uploader.upload(
-    content,
-    folder=f"cars/{car_id}",
-    public_id=uuid.uuid4().hex,
-    overwrite=False,
-    resource_type="image",
-)
+        content,
+        folder=f"cars/{car_id}",
+        public_id=uuid.uuid4().hex,
+        overwrite=False,
+        resource_type="image",
+    )
 
     url = result["secure_url"]
     public_id = result["public_id"]
