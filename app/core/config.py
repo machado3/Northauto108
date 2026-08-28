@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: Union[str, List[str]] = [
         "http://localhost:3000",
         "http://localhost:3001",
+        "https://northauto108-web-rd9u.vercel.app"
     ]
 
     @field_validator("CORS_ORIGINS", mode="before")
