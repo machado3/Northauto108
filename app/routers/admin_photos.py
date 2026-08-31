@@ -64,19 +64,21 @@ async def upload_photo(
         )
 
     content = await file.read()
-    if len(content) > MAX_SIZE:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Ficheiro demasiado grande. Máximo {settings.MAX_FILE_SIZE_MB}MB.",
-        )
 
-    # Comprimir e redimensionar a imagem antes do upload
+    # 1. Comprimir PRIMEIRO para reduzir imagens gigantes (ex: 30MB -> 500KB)
     try:
         processed_content = compress_image(content)
     except Exception:
         raise HTTPException(status_code=400, detail="Erro ao processar a imagem.")
 
-    # Enviar os bytes já otimizados para o Cloudflare
+    # 2. Validar o tamanho APÓS a compressão
+    if len(processed_content) > MAX_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Ficheiro demasiado grande mesmo após compressão. Máximo {settings.MAX_FILE_SIZE_MB}MB.",
+        )
+
+    # 3. Enviar para o Cloudflare
     result = cloudinary.uploader.upload(
         processed_content,
         folder=f"cars/{car_id}",
