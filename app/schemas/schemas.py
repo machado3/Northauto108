@@ -1,104 +1,108 @@
-from pydantic import BaseModel, Field
-from typing import Optional
 from datetime import datetime
 from decimal import Decimal
+from typing import Optional
+from pydantic import BaseModel, Field
 
 
 # ── Photos ────────────────────────────────────────────────────────────────────
 
-class PhotoOut(BaseModel):
-    id: int
-    url: str
-    public_id: str
-    is_primary: bool
-    car_id: int
-    created_at: datetime
 
-    model_config = {"from_attributes": True}
+class PhotoOut(BaseModel):
+  id: Optional[int] = None
+  url: Optional[str] = None
+  public_id: Optional[str] = None
+  is_primary: Optional[bool] = None
+  car_id: Optional[int] = None
+  created_at: Optional[datetime] = None
+
+  model_config = {"from_attributes": True}
 
 
 # ── Cars ──────────────────────────────────────────────────────────────────────
 
+
 class CarBase(BaseModel):
-    title: str = Field(..., min_length=1, max_length=255)
-    brand: str = Field(..., min_length=1, max_length=100)
-    model: str = Field(..., min_length=1, max_length=100)
-    year: int = Field(..., ge=1900, le=2100)
-    price: Decimal = Field(..., ge=0)
-    mileage: int = Field(default=0, ge=0)
-    fuel: str = Field(..., min_length=1, max_length=50)
-    transmission: str = Field(..., min_length=1, max_length=50)
-    color: str = Field(default="", max_length=50)
-    horsepower: Optional[int] = Field(default=None, ge=0)
-    description: str = Field(default="")
-    features: list[str] = Field(default_factory=list)
-    active: bool = Field(default=True)
+  title: Optional[str] = Field(default=None, min_length=1, max_length=255)
+  brand: Optional[str] = Field(default=None, min_length=1, max_length=100)
+  model: Optional[str] = Field(default=None, min_length=1, max_length=100)
+  year: Optional[int] = Field(default=None, ge=1900, le=2100)
+  price: Optional[Decimal] = Field(default=None, ge=0)
+  mileage: Optional[int] = Field(default=None, ge=0)
+  fuel: Optional[str] = Field(default=None, min_length=1, max_length=50)
+  transmission: Optional[str] = Field(default=None, min_length=1, max_length=50)
+  color: Optional[str] = Field(default=None, max_length=50)
+  horsepower: Optional[int] = Field(default=None, ge=0)
+  description: Optional[str] = Field(default=None)
+  features: Optional[list[Optional[str]]] = Field(default=None)
+  active: Optional[bool] = Field(default=None)
 
 
 class CarCreate(CarBase):
-    pass
+  pass
 
 
 class CarUpdate(BaseModel):
-    title: Optional[str] = Field(default=None, min_length=1, max_length=255)
-    brand: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    model: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    year: Optional[int] = Field(default=None, ge=1900, le=2100)
-    price: Optional[Decimal] = Field(default=None, ge=0)
-    mileage: Optional[int] = Field(default=None, ge=0)
-    fuel: Optional[str] = Field(default=None, min_length=1, max_length=50)
-    transmission: Optional[str] = Field(default=None, min_length=1, max_length=50)
-    color: Optional[str] = Field(default=None, max_length=50)
-    horsepower: Optional[int] = Field(default=None, ge=0)
-    description: Optional[str] = None
-    features: Optional[list[str]] = None
-    active: Optional[bool] = None
+  title: Optional[str] = Field(default=None, min_length=1, max_length=255)
+  brand: Optional[str] = Field(default=None, min_length=1, max_length=100)
+  model: Optional[str] = Field(default=None, min_length=1, max_length=100)
+  year: Optional[int] = Field(default=None, ge=1900, le=2100)
+  price: Optional[Decimal] = Field(default=None, ge=0)
+  mileage: Optional[int] = Field(default=None, ge=0)
+  fuel: Optional[str] = Field(default=None, min_length=1, max_length=50)
+  transmission: Optional[str] = Field(default=None, min_length=1, max_length=50)
+  color: Optional[str] = Field(default=None, max_length=50)
+  horsepower: Optional[int] = Field(default=None, ge=0)
+  description: Optional[str] = None
+  features: Optional[list[Optional[str]]] = None
+  active: Optional[bool] = None
 
 
 class CarOut(CarBase):
-    id: int
-    photos: list[PhotoOut] = Field(default_factory=list)
-    created_at: datetime
-    updated_at: datetime
+  id: Optional[int] = None
+  photos: Optional[list[Optional[PhotoOut]]] = Field(default=None)
+  created_at: Optional[datetime] = None
+  updated_at: Optional[datetime] = None
 
-    model_config = {"from_attributes": True}
+  model_config = {"from_attributes": True}
 
 
 class CarListOut(BaseModel):
-    id: int
-    title: Optional[str] = None
-    brand: str
-    model: str
-    year: int
-    price: Decimal
-    mileage: Optional[int] = None
-    fuel: str
-    transmission: str
-    color: Optional[str] = None
-    horsepower: Optional[int] = None
-    features: list[str]
-    active: bool
-    primary_photo: Optional[PhotoOut] = None
-    photo_count: int = 0
-    created_at: datetime
+  id: Optional[int] = None
+  title: Optional[str] = None
+  brand: Optional[str] = None
+  model: Optional[str] = None
+  year: Optional[int] = None
+  price: Optional[Decimal] = None
+  mileage: Optional[int] = None
+  fuel: Optional[str] = None
+  transmission: Optional[str] = None
+  color: Optional[str] = None
+  horsepower: Optional[int] = None
+  features: Optional[list[Optional[str]]] = None
+  active: Optional[bool] = None
+  primary_photo: Optional[PhotoOut] = None
+  photo_count: Optional[int] = 0
+  created_at: Optional[datetime] = None
 
-    model_config = {"from_attributes": True}
+  model_config = {"from_attributes": True}
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
+
 class LoginRequest(BaseModel):
-    username: str
-    password: str
+  username: Optional[str] = None
+  password: Optional[str] = None
 
 
 class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    username: str
+  access_token: Optional[str] = None
+  token_type: Optional[str] = "bearer"
+  username: Optional[str] = None
 
 
 # ── Generic ───────────────────────────────────────────────────────────────────
 
+
 class MessageResponse(BaseModel):
-    message: str
+  message: Optional[str] = None
