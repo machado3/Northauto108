@@ -66,16 +66,16 @@ class CarOut(CarBase):
 
 class CarListOut(BaseModel):
     id: int
-    title: str
+    title: Optional[str] = None
     brand: str
     model: str
     year: int
     price: Decimal
-    mileage: int
+    mileage: Optional[int] = None
     fuel: str
     transmission: str
-    color: str
-    horsepower: Optional[int]
+    color: Optional[str] = None
+    horsepower: Optional[int] = None
     features: list[str]
     active: bool
     primary_photo: Optional[PhotoOut] = None
